@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Snake Game</title>
+	<style>
+		body { margin:0; background:#000; color:#fff; font-family:sans-serif; text-align:center; }
+		canvas { background:#111; display:block; margin:20px auto; }
+	</style>
+</head>
+<body>
+	<h1>Snake 🐍</h1>
+	<canvas id="game" width="600" height="400"></canvas>
+	<p id="info">Score: 0</p>
+	<script>
+		const canvas = document.getElementById("game");
+		const ctx = canvas.getContext("2d");
+		const SIZE = 20, COLS = 30, ROWS = 20;
+		let snake = [{x:5, y:5}], dx = 1, dy = 0, food = rand(), score = 0;
+		let gameOver = false, canTurn = true;
+
+		function rand() {
+			return { x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS) };
+		}
+
+		function drawRect(x, y, color) {
+			ctx.fillStyle = color;
+			ctx.fillRect(x*SIZE, y*SIZE, SIZE-1, SIZE-1);
+		}
+
+		function draw() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			snake.forEach(p => drawRect(p.x, p.y, "#0f0"));
+			drawRect(food.x, food.y, "#f00");
+			document.getElementById("info").textContent = "Score: " + score;
+			if (gameOver) {
+				ctx.fillStyle = "#fff";
+				ctx.font = "20px sans-serif";
+				ctx.fillText("Game Over - R to Restart", 180, 200);
+			}
+		}
+
+		function move() {
+			if (gameOver) return;
+			const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+			if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS || snake.some(p => p.x==head.x && p.y==head.y)) {
+				gameOver = true;
+				return;
+			}
+			snake.unshift(head);
+			if (head.x === food.x && head.y === food.y) {
+				score++;
+				while (snake.some(p => p.x==food.x && p.y==food.y)) food = rand();
+			} else {
+				snake.pop();
+			}
+			canTurn = true;
+		}
+
+		document.addEventListener("keydown", e => {
+			if (!canTurn) return;
+			if (e.key === "ArrowUp" && dy === 0) dx = 0, dy = -1, canTurn = false;
+			if (e.key === "ArrowDown" && dy === 0) dx = 0, dy = 1, canTurn = false;
+			if (e.key === "ArrowLeft" && dx === 0) dx = -1, dy = 0, canTurn = false;
+			if (e.key === "ArrowRight" && dx === 0) dx = 1, dy = 0, canTurn = false;
+			if (e.key === "r" || e.key === "R") reset();
+		});
+
+		function reset() {
+			snake = [{x:5, y:5}], dx = 1, dy = 0, food = rand(), score = 0;
+			gameOver = false;
+		}
+
+		setInterval(() => { move(); draw(); }, 100);
+	</script>
+</body>
+</html>
